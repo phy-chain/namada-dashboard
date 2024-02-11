@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --namada-primary: #ffff00;
+  --namada-danger: #ff0000;
+  --namada-black: #000000;
+  --namada-secondary: #00ffff;
+  --namada-white: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --namada-primary: #00ffff;
+    --namada-danger: #ff0000;
+    --namada-black: #000000;
+    --namada-secondary: #ffff00;
+    --namada-white: #ffffff;
+  }
+}
+
+body {
+  color: var(--namada-primary);
+  background: linear-gradient(to bottom, transparent, var(--namada-black)) var(--namada-black);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
