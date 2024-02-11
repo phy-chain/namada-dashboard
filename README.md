@@ -1,1 +1,3 @@
-# namada-dashboard
+# Namada dashboard
+
+*Shield & Serve*
