@@ -32,7 +32,7 @@ export default function RootLayout({
       try {
         const res = await status()
         const catchingUp = res?.result?.sync_info.catching_up
-        console.log('catching up', catchingUp);
+        // console.log('catching up', catchingUp);
         setRpcUp(!res?.result?.sync_info.catching_up)
       } catch (e) {
         console.error(e);

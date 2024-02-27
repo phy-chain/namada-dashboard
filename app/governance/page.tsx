@@ -1,9 +1,10 @@
 'use client'
 
 import {ProposalsApi, useApi, Cache, ProposalItem} from "@/services/api";
-import {useEffect, useState} from "react";
+import {ChangeEvent, ChangeEventHandler, useCallback, useEffect, useState} from "react";
 import {Proposal} from "@/app/governance/Proposal";
 import {Loader} from "@/app/components/Spinner";
+import {useMiniSearch} from "react-minisearch";
 
 enum VotingSections {
   "Now",
@@ -31,11 +32,22 @@ const getStatus = (proposal: ProposalItem, currentEpoch: number): VotingSections
   }
 };
 
+const miniSearchOptions = {
+  fields: ["id", 'Author', "Content.authors", 'Content.abstract'],
+  storeFields: ['id'],
+  extractField: (document: any, fieldName: any) => {
+    return fieldName.split('.').reduce((doc: any, key: any) => doc && doc[key], document)
+  }
+}
+
 export default function Propsals() {
   const {proposals, voteProposal} = useApi()
+  const [rawData, setRawData] = useState<ProposalsApi>([])
   const [data, setData] = useState<{ [key: string]: ProposalsApi }>({})
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<Error | unknown>()
+
+  const {search, searchResults, addAll} = useMiniSearch(rawData, miniSearchOptions);
 
   useEffect(() => {
     // TODO(hadrien): Faire un data wrapper, pour gérer le loading / error / innerData.
@@ -43,21 +55,8 @@ export default function Propsals() {
       try {
         setLoading(true);
         const d = await proposals();
-        const epoch = Cache['Last committed epoch']
-        const sections = d.reduce((acc, pro) => {
-          if(pro["Proposal Id"] === "197") {
-            pro.special =true
-          }
-          acc[getStatus(pro, epoch)].push(pro);
-          return acc;
-        }, {
-          [VotingSections.Now]: [] as ProposalsApi,
-          [VotingSections.Coming]: [] as ProposalsApi,
-          [VotingSections.Execution]: [] as ProposalsApi,
-          [VotingSections.Previous]: [] as ProposalsApi,
-          [VotingSections.Other]: [] as ProposalsApi,
-        })
-        setData(sections)
+        setRawData(d);
+        addAll(d);
         setError(null);
       } catch (error) {
         console.error(error);
@@ -66,6 +65,29 @@ export default function Propsals() {
       setLoading(false)
     })();
   }, []);
+
+
+  useEffect(() => {
+    const epoch = Cache['Last committed epoch']
+    const sections = (searchResults?.length ? searchResults : rawData).reduce((acc, pro) => {
+      if (pro["Content"]["authors"]?.includes("Anoma Foundation")) {
+        pro.special = true
+      }
+      acc[getStatus(pro, epoch)].push(pro);
+      return acc;
+    }, {
+      [VotingSections.Now]: [] as ProposalsApi,
+      [VotingSections.Coming]: [] as ProposalsApi,
+      [VotingSections.Execution]: [] as ProposalsApi,
+      [VotingSections.Previous]: [] as ProposalsApi,
+      [VotingSections.Other]: [] as ProposalsApi,
+    }) || {};
+    setData(sections)
+  }, [rawData, searchResults])
+
+  const handleSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    search(event.target.value, {prefix: true});
+  }, [search])
 
   const currentEpoch = Cache['Last committed epoch'];
 
@@ -78,6 +100,11 @@ export default function Propsals() {
         {loading && <Loader className="self-center" size="w-20 h-20"/>}
         {!loading && !!Object.keys(data).length && (
           <div className="flex flex-col gap-6">
+            <input type="text"
+                   className="bg-namada-secondary  text-namada-black text-sm rounded-lg focus:ring-namada-primary focus:border-namada-secondary block p-2.5 min-w-[200px] w-1/4"
+                   onChange={handleSearchChange} placeholder='Search id / abstract / title / author…'/>
+
+
             <div className="flex flex-col gap-4">
               <h3 className="text-3xl">Voting Now</h3>
               {specialVotes && <div className="text-2xl">Protocol votes</div>}

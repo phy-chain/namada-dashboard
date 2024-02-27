@@ -24,16 +24,19 @@ export const Proposal = ({proposal, currentEpoch, cantVote}: Props) => {
         <div
           className="flex flex-col items-center justify-center shrink-0 w-24 truncate border-r border-namada-secondary p-4">
           <span className="" title={proposal.Type}>{proposal.Type.substring(0, 3)}</span>
-          <span className="">{proposal["Proposal Id"]}</span>
+          <span className="">{proposal.id}</span>
         </div>
         <div className="flex flex-col gap-2 p-4 grow">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2">
             <h3 className="mb-2 text-3xl font-bold tracking-tight">
               {truncateTitle(proposal.Content.title)}
             </h3>
-            <h4>{proposal.Author} {proposal.Content.authors}</h4>
+            <h4>
+              <div>{proposal.Author}</div>
+              <div>{proposal.Content.authors}</div>
+            </h4>
           </div>
-          <p className="flex justify-between items-center">
+          <div className="flex justify-between items-center">
             <div>{truncateTitle(proposal.Content.abstract)}</div>
             {!cantVote && <div className="relative flex gap-2 cursor-not-allowed opacity-50" title="Coming soon">
               <div className="absolute inset-0 bg-namada-primary opacity-30 rounded-lg" />
@@ -47,7 +50,7 @@ export const Proposal = ({proposal, currentEpoch, cantVote}: Props) => {
                 Nay
               </button>
             </div>}
-          </p>
+          </div>
         </div>
         <div className="flex items-center justify-center p-4 border-l border-namada-secondary">
           {proposal["Start Epoch"]} - {proposal["End Epoch"]}

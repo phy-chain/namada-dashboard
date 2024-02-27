@@ -19,6 +19,7 @@ export type ValidatorsApiResult = {
 }
 export type ProposalItem = {
   "Last committed epoch": string;
+  "id": number;
   "Proposal Id": string;
   "Type": string;
   "Author": string;
@@ -85,12 +86,12 @@ export function useApi() {
       // return await fetch(`/namada-api/proposals`).then((res) => res.json())
       return await fetch(`https://namada.lankou.org/all_proposals.json`).then((res) => res.json())
         .then((data) => {
-          const proposals = Object.values<ProposalItem>(data).filter(it => parseInt(it['Proposal Id']) >= 0).sort((a, b) => {
-            let aPId = parseInt(a["Proposal Id"]);
-            let bPId = parseInt(b["Proposal Id"]);
-            return aPId > bPId ? -1 : aPId < bPId ? 1 : 0;
+          const proposals = Object.values<ProposalItem>(data).filter(it => parseInt(it['Proposal Id']) >= 0)
+            .map(it => ({...it, id: parseInt(it["Proposal Id"])}))
+            .sort((a, b) => {
+            return a.id > b.id ? -1 : a.id < b.id ? 1 : 0;
           });
-          console.log(proposals[0]);
+          // console.log(proposals[0]);
           Cache['Last committed epoch'] = parseInt(proposals[0]['Last committed epoch']);
           return proposals;
         });
